@@ -5,11 +5,10 @@ import pdfkit
 from bs4 import BeautifulSoup
 import concurrent.futures
 from pathlib import Path
-from pywebio import start_server
-from pywebio.input import input_group, textarea, input, NUMBER
-from pywebio.output import put_file, put_success, put_error
 from docx import Document
 from zipfile import ZipFile
+from pywebio.input import input_group, textarea, input, NUMBER
+from pywebio.output import put_file, put_success, put_error
 
 def extract_delivery_notices(url, headers):
     try:
@@ -109,13 +108,11 @@ def main():
         for file in generated_files:
             all_files.append(file)
 
-        with open(doc_filename, 'rb') as f:
-            put_file(doc_filename, f.read(), '下载生成的 DOCX 文件')
+        put_file(doc_filename, open(doc_filename, 'rb'), '下载生成的 DOCX 文件')
 
         for pdf_file in generated_files:
             if os.path.exists(pdf_file):  # 确保文件存在
-                with open(pdf_file, 'rb') as f:
-                    put_file(pdf_file, f.read(), f'下载生成的 PDF 文件: {pdf_file}')
+                put_file(pdf_file, open(pdf_file, 'rb'), f'下载生成的 PDF 文件: {pdf_file}')
             else:
                 print(f"文件 {pdf_file} 不存在，无法下载。")
 
@@ -124,10 +121,10 @@ def main():
         for file in all_files:
             zipf.write(file, os.path.basename(file))
 
-    with open(zip_filename, 'rb') as f:
-        put_file(zip_filename, f.read(), '下载所有生成的文件 (ZIP)')
-
+    put_file(zip_filename, open(zip_filename, 'rb'), '下载所有生成的文件 (ZIP)')
     put_success("所有文件已生成并打包，点击上方按钮下载。")
 
-if __name__ == "__main__":
-    start_server(main, port=8080)
+# Vercel serverless function entry point
+def handler(request):
+    main()
+
